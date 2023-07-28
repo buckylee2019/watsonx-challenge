@@ -12,7 +12,7 @@ import requests
 import json
 class ChatBot():
     def __init__(self) -> None:
-        self.url = "https://noderedchat-application-19.12ty2elufq53.jp-tok.codeengine.appdomain.cloud/v1/chat/completions"
+        self.url = "http://150.240.64.87:5000/v1/chat/completions"
     def chat(self, prompt, temperature=0.5, streaming=False):
         headers = {
             'accept': 'application/json',
@@ -31,7 +31,7 @@ class ChatBot():
 
 
 
-class ClaudeChat(LLM):
+class MetaChat(LLM):
     
     history_data: Optional[List] = []
     chatbot : Optional[ChatBot] = ChatBot()

@@ -5,6 +5,7 @@ from uuid import uuid4
 from dotenv import load_dotenv
 import os
 from LLM import ChatGPTAPI_unsafe  # FREE GOOGLE BARD API
+from LLM import MetaChatAPI  # FREE GOOGLE BARD API
 import nest_asyncio
 from requests import post
 import re
@@ -146,10 +147,12 @@ def update_pinecone(query):
 
 
 model = "gpt-3.5-turbo-0613"
-llm= ChatGPTAPI_unsafe.ChatGPT(token=os.environ.get("CHATGPT_TOKEN"), conversation=os.environ.get("CONVERSATION_ID_1"))
+# llm= ChatGPTAPI_unsafe.ChatGPT(token=os.environ.get("CHATGPT_TOKEN"), conversation=os.environ.get("CONVERSATION_ID_1"))
 
+llm = MetaChatAPI.MetaChat()
 
-llm2json= ChatGPTAPI_unsafe.ChatGPT(token=os.environ.get("CHATGPT_TOKEN"), conversation=os.environ.get("CONVERSATION_ID_2"))
+# llm2json= ChatGPTAPI_unsafe.ChatGPT(token=os.environ.get("CHATGPT_TOKEN"), conversation=os.environ.get("CONVERSATION_ID_2"))
+llm2json= MetaChatAPI.MetaChat()
 prompt_template =  """{context}
 Check if the given article a crime news or not, NOTE: ONLY ANSWER TRUE OR FALSE
 """

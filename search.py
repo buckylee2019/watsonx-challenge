@@ -55,6 +55,6 @@ chain = GraphCypherQAChain.from_llm(
 
 
 print(chain.run("""
-吳建宏犯罪相關資訊及詳細人員識別資訊？
+列出吳建宏是否涉及犯罪及相關人員識別資訊如職位年紀性別
 """))
      
