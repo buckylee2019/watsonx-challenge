@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 from LLM import ChatGPTAPI_unsafe  # FREE GOOGLE BARD API
 from langchain.prompts import PromptTemplate
+from LLM import MetaChatAPI  # FREE GOOGLE BARD API
 # Connect to your Neo4j database
 load_dotenv()
 graph = Neo4jGraph(
@@ -46,7 +47,8 @@ The question is:
 CYPHER_RECOMMENDATION_PROMPT = PromptTemplate(
     input_variables=["schema", "question"], template=CYPHER_RECOMMENDATION_TEMPLATE
 )
-llm= ChatGPTAPI_unsafe.ChatGPT(token=os.environ.get("CHATGPT_TOKEN"), conversation=os.environ.get("CONVERSATION_ID_1"))
+llm = MetaChatAPI.MetaChat()
+# llm= ChatGPTAPI_unsafe.ChatGPT(token=os.environ.get("CHATGPT_TOKEN"), conversation=os.environ.get("CONVERSATION_ID_1"))
 
 chain = GraphCypherQAChain.from_llm(
     llm, graph=graph, verbose=True,cypher_prompt=CYPHER_RECOMMENDATION_PROMPT
