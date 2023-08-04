@@ -17,7 +17,7 @@ def create_node_and_relationship(row):
 
     identifier_node =  Node("Identifier", name=row["Name"]+"-識別資訊", gender=row["Gender"], age=row["Age"], position=row["Position"])
     org_node = Node("Organization", name=row["Works For"])
-    news_node = Node("News", title=row["Involved in News Title"], content=row["News Content"])
+    news_node = Node("News", title=row["Involved in News Title"], content=row["News Content"], group =row["Group"] )
     graph.merge(person_node, "Person", "name")
     graph.merge(org_node, "Organization", "name")
     graph.merge(news_node, "News", "title")
@@ -44,7 +44,9 @@ def create_node_and_relationship(row):
     graph.create(works_for_relation)
     graph.create(involved_in_news_relation)
     
-    
+  
+def delete_nodes():
+    graph.delete_all()
 # # Sample CSV data (replace this with your actual data)
 # with open('output/extracted_news.json') as f:
 #   news_json = json.load(f)
