@@ -67,7 +67,7 @@ class ChatGPT(LLM):
         return {"model": "ChatGPT", "token": self.token}
 
 
-# llm = ChatGPT(token = "") #for start new chat
+# llm = ChatGPT(token=os.environ.get("CHATGPT_TOKEN")) #for start new chat
 # llm = ChatGPT(token = CHATGPT_TOKEN, conversation = conversation_id) #for use a chat already started
 
 # print(llm("Hello, how are you?"))
