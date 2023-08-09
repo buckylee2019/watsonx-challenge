@@ -3,7 +3,6 @@ from typing import Optional, List, Mapping, Any
 import os
 from langchain import PromptTemplate, LLMChain
 from time import sleep
-
 import requests
 import json
 from dotenv import load_dotenv
@@ -11,6 +10,7 @@ from genai.credentials import Credentials
 from genai.model import Model
 from genai.schemas import GenerateParams
 from genai.credentials import Credentials
+import LLM.watsonx_example.due_diligence as due_diligence 
 
 load_dotenv()
 api_key = os.getenv("GENAI_KEY", None) 
@@ -29,7 +29,6 @@ class ChatBot():
         )
         lan_model = Model("bigscience/bloom", params=params, credentials=creds)
         return lan_model.generate([prompt])
-
 
 
 class IBMChat(LLM):
@@ -74,6 +73,29 @@ class IBMChat(LLM):
     def _identifying_params(self) -> Mapping[str, Any]:
         """Get the identifying parameters."""
         return {"model": "IBM watsonx"}
+
+
+def watsonx_ref_model(name, title, content):
+    params = GenerateParams(decoding_method="sample", max_new_tokens=300, temperature=0.1)
+    LLM = Model("ibm/mpt-7b-instruct", params=params, credentials=creds)
+    applicant_prompt = f"Extract {name}'s below information from below content"
+    format_prompt = 'committed crime name, sentence, involved in news title, if the field is not mentioned fill it with N/A Make sure every information you display is found in the given news. Allowed format: {"news_title" : "Title of news", "name": "person name in the news", "committed_crime_name" : "Crime that the person is possibly committed in the news;sentence:Sentence that given by the judge in the news"} Response ONLY in list format and the value should be its original text, DO NOT translate'
+    news_prompt = f"""
+        Title: {title}
+        Content: {content}
+    """
+    applicant_content = applicant_prompt+format_prompt+news_prompt
+
+    json_data = f"""{due_diligence.template_1}
+        Transcript:{applicant_content}
+        Summary:
+        """
+
+    response = LLM.generate([json_data])
+    print(response[0].generated_text)
+    
+    result = json.loads(response[0].generated_text)
+    return result
 
 # llm = IBMChat() #for start new chat
 

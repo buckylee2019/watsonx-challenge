@@ -2,7 +2,8 @@ import os
 import json
 from flask import Flask, request, jsonify
 import requests
-import watsonx_example.due_diligence as due_diligence
+import LLM.watsonx_example.due_diligence as due_diligence
+import LLM.IBMChatAPI as ibm_ref
 
 app = Flask(__name__)
 watsonx_token= os.environ.get("WATSONX_TOKEN") 
@@ -72,7 +73,7 @@ def watsonx_response(name, title, content):
     print(response.json())
     return jsonify(response)
 
-# @app.route('/due_diligence', methods=['POST'])
+@app.route('/due_diligence', methods=['POST'])
 def due_diligence_response():
     data = request.get_json()
     name = data['name']
@@ -82,7 +83,9 @@ def due_diligence_response():
     name = graph_response['name']
     title = graph_response['title']
     content = graph_response['content']
-    watsonx_response(name, title, content)
+    result = ibm_ref.watsonx_ref_model(name, title, content)
+    return result
 
-# if __name__ == '__main__':
-#     app.run(host='0.0.0.0')
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0')
