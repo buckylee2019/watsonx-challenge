@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from LLM import ChatGPTAPI_unsafe  # FREE GOOGLE BARD API
 from langchain.prompts import PromptTemplate
 from LLM import MetaChatAPI  # FREE GOOGLE BARD API
+from LLM import IBMChatAPI  # IBM Watsonx
 # Connect to your Neo4j database
 load_dotenv()
 graph = Neo4jGraph(
@@ -26,6 +27,7 @@ Cypher examples:
 MATCH (s:Stream)-[:`HAS_LANGUAGE`]->(:Language {{name: 'no'}})
 RETURN count(s) AS streamers
 # Which streamers do you recommend if I like kimdoe?
+# What is the news related to the applicant?
 MATCH (s:Stream)
 WHERE s.name = "kimdoe"
 WITH collect(s) AS sourceNodes
@@ -47,8 +49,9 @@ The question is:
 CYPHER_RECOMMENDATION_PROMPT = PromptTemplate(
     input_variables=["schema", "question"], template=CYPHER_RECOMMENDATION_TEMPLATE
 )
-llm = MetaChatAPI.MetaChat()
-# llm= ChatGPTAPI_unsafe.ChatGPT(token=os.environ.get("CHATGPT_TOKEN"), conversation=os.environ.get("CONVERSATION_ID_1"))
+# llm = MetaChatAPI.MetaChat()
+llm = ChatGPTAPI_unsafe.ChatGPT(token=os.environ.get("CHATGPT_TOKEN"), conversation=os.environ.get("CONVERSATION_ID_1"))
+# llm = IBMChatAPI.IBMChat()
 
 chain = GraphCypherQAChain.from_llm(
     llm, graph=graph, verbose=True,cypher_prompt=CYPHER_RECOMMENDATION_PROMPT
@@ -59,4 +62,3 @@ chain = GraphCypherQAChain.from_llm(
 print(chain.run("""
 列出吳建宏是否涉及犯罪及相關人員識別資訊如職位年紀性別
 """))
-     

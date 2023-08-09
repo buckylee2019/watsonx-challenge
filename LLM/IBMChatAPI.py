@@ -1,35 +1,38 @@
-import requests
 from langchain.llms.base import LLM
 from typing import Optional, List, Mapping, Any
-import pydantic
 import os
 from langchain import PromptTemplate, LLMChain
 from time import sleep
 
 import requests
 import json
+from dotenv import load_dotenv
+from genai.credentials import Credentials
+from genai.model import Model
+from genai.schemas import GenerateParams
+from genai.credentials import Credentials
+
+load_dotenv()
+api_key = os.getenv("GENAI_KEY", None) 
+api_url = os.getenv("GENAI_API", None)
+creds = Credentials(api_key, api_endpoint=api_url)
+
 class ChatBot():
     def __init__(self) -> None:
-        self.url = "http://150.240.64.87:5000/v1/chat/completions"
-    def chat(self, prompt, temperature=0.5, streaming=False):
-        headers = {
-            'accept': 'application/json',
-            'Content-Type': 'application/json'
-            }   
-        payload =  json.dumps({
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": prompt
-
-                    }
-                ]})
-        response = requests.request("POST", self.url,headers=headers, data=payload)
-        return response.json()["choices"][0]["message"]["content"]
+        return None
+    def chat(self, prompt):
+        params = GenerateParams(
+            decoding_method="sample",
+            max_new_tokens=1536,
+            min_new_tokens=10,
+            temperature=0.7,
+        )
+        lan_model = Model("bigscience/bloom", params=params, credentials=creds)
+        return lan_model.generate([prompt])
 
 
 
-class MetaChat(LLM):
+class IBMChat(LLM):
     
     history_data: Optional[List] = []
     chatbot : Optional[ChatBot] = ChatBot()
@@ -59,26 +62,22 @@ class MetaChat(LLM):
             
         
         sleep(2)
-        data = self.chatbot.chat(prompt=prompt, temperature=0.5, streaming=False)
+        data = self.chatbot.chat(prompt=prompt)
         #conversation_list = self.chatbot.get_conversation_list()
         #print(conversation_list)
         
         #add to history
         self.history_data.append({"prompt":prompt,"response":data})    
-        
-        return data
+        return data[0].generated_text
 
     @property
     def _identifying_params(self) -> Mapping[str, Any]:
         """Get the identifying parameters."""
-        return {"model": "ClaudeCHAT"}
+        return {"model": "IBM watsonx"}
 
-
-
-# llm = ClaudeChat() #for start new chat
-
+# llm = IBMChat() #for start new chat
 
 # print(llm("Hello, how are you?"))
-#print(llm("what is AI?"))
-#print(llm("Can you resume your previus answer?")) #now memory work well
 
+# for result in ChatBot().chat('Hello! How are you?':
+#     print("\t {}".format(result.generated_text))
