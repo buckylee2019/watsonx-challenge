@@ -24,8 +24,8 @@ from langchain.chains import LLMChain
 import numpy as np
 from sklearn.cluster import OPTICS
 import matplotlib.pyplot as plt
-import hdbscan
-from neo4j_import import create_node_and_relationship,delete_nodes
+# import hdbscan
+from preprocess.neo4j_import import create_node_and_relationship,delete_nodes
 from langchain.vectorstores import Chroma
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.docstore.document import Document
@@ -131,16 +131,16 @@ class vector_store():
         scores = [{"score":sc['score'][0]}  if len(sc['score'])>1 else {"score":()} for sc in scores]
         embeds = self.hf.embed_documents([doc for doc,ids in docs])
 
-        # optics_model = OPTICS(min_samples=2, xi=0.03) # Adjust parameters as needed
-        # optics_model.fit(embeds)
-        # labels = optics_model.labels_
-        hdbscan_model = hdbscan.HDBSCAN(min_cluster_size=2, min_samples=3) # Adjust parameters as needed
-        hdbscan_model.fit(embeds)
-        labels = hdbscan_model.labels_
-        maxlabel = max(hdbscan_model.labels_)
+        optics_model = OPTICS(min_samples=2, xi=0.03) # Adjust parameters as needed
+        optics_model.fit(embeds)
+        labels = optics_model.labels_
+        # hdbscan_model = hdbscan.HDBSCAN(min_cluster_size=2, min_samples=3) # Adjust parameters as needed
+        # hdbscan_model.fit(embeds)
+        # labels = hdbscan_model.labels_
+        maxlabel = max(labels)
         merge_label = [ ]
         metadatas = []
-        for label, score in zip(hdbscan_model.labels_, scores):
+        for label, score in zip(labels, scores):
             if  len(score['score']) > 1 and  score['score'][1] >= 2:
                 merge_label.append(f"{topic}_{label+int(score['score'][0].metadata['maxlabel'])+2}") 
                 metadatas.append({"label": f"{topic}_{label+int(score['score'][0].metadata['maxlabel'])+2}","maxlabel":str(maxlabel)})

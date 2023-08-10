@@ -4,9 +4,13 @@ from flask import Flask, request, jsonify
 import requests
 import LLM.watsonx_example.due_diligence as due_diligence
 import LLM.IBMChatAPI as ibm_ref
-
+from LLM import ChatGPTAPI_unsafe  # FREE GOOGLE BARD API
+from langchain.agents.agent_toolkits import SQLDatabaseToolkit
+from langchain.sql_database import SQLDatabase
+import datetime
 app = Flask(__name__)
-watsonx_token= os.environ.get("WATSONX_TOKEN") 
+watsonx_token= os.environ.get("WATSONX_TOKEN","aaa") 
+llm = ChatGPTAPI_unsafe.ChatGPT(token=os.environ.get("CHATGPT_TOKEN"), conversation=os.environ.get("CONVERSATION_ID_1"))
 
 def graphdb_search_response(name, job, company):
     neo4j_headers = {
@@ -85,7 +89,50 @@ def due_diligence_response():
     content = graph_response['content']
     result = ibm_ref.watsonx_ref_model(name, title, content)
     return result
+@app.route('/get_account_status', methods=['POST'])
+def account_status():
+    db = SQLDatabase.from_uri("mysql+pymysql://ceadmin:CE.demo0704@163.73.72.44/cedemo")
+    data = request.get_json()
+    # data = {"name":"孫道存"}
+    name = data['name']
+    account = db.run(f"select * from account_status where customer_name = \"{name}\"")
+    print(eval(account))
+    if account == "[]":
+        # account = [(5, '孫道存', 'Rejected', 'Pending', '涉及金融犯罪相關新聞, 需進一步審查', '2023-08-10')]
+        return jsonify({"error":"搜尋名稱不存在！"})
+    id, Name, _, result, reason, dt =  eval(account)[0]
+    return jsonify({
+        "Name": Name,
+        "Status":result,
+        "Reason":reason,
+        "UpdateDate" : dt
+    })
 
+@app.route('/get_abnormal_list', methods=['POST'])
+def abnormal_list():
+    db = SQLDatabase.from_uri("mysql+pymysql://ceadmin:CE.demo0704@163.73.72.44/cedemo")
+    data = request.get_json()
+    
+    dateoftrans = data['date']
+    kyc = db.run(f"select * from kyc_info")
+    print(kyc)
+    if len(kyc) == "[]":
+        kyc = [
+    {"Transaction ID": "TX12345", "Date and Time": "2023-08-01 14:30:00", "Account Number": "A123456", "Transaction Type": "Withdrawal", "Transaction Amount": 10000, "Counterparty": "-", "Location": "Paris, France", "Transaction Channel": "ATM", "Purpose or Description": "Large cash withdrawal", "Risk Score": 8, "Flag or Alert": True, "Review Status": "Pending", "Associated Accounts": "-", "Source of Funds": "Savings", "Transaction Patterns": "Unusual amount", "Notes or Comments": "Customer reported travel plans", "Investigation Status": "Ongoing"},
+    {"Transaction ID": "TX67890", "Date and Time": "2023-07-15 09:45:00", "Account Number": "B987654", "Transaction Type": "Deposit", "Transaction Amount": 50, "Counterparty": "Friend's Account", "Location": "New York, USA", "Transaction Channel": "Online Banking", "Purpose or Description": "Repaying borrowed money", "Risk Score": 5, "Flag or Alert": False, "Review Status": "Cleared", "Associated Accounts": "-", "Source of Funds": "Personal funds", "Transaction Patterns": "Small deposits", "Notes or Comments": "-", "Investigation Status": "N/A"},
+    {"Transaction ID": "TX24680", "Date and Time": "2023-06-10 11:00:00", "Account Number": "C543210", "Transaction Type": "Transfer", "Transaction Amount": 1000, "Counterparty": "Account D123456", "Location": "Los Angeles, USA", "Transaction Channel": "Mobile App", "Purpose or Description": "Regular monthly payment", "Risk Score": 3, "Flag or Alert": False, "Review Status": "Cleared", "Associated Accounts": "Account D123456", "Source of Funds": "Salary", "Transaction Patterns": "Regular payment", "Notes or Comments": "-", "Investigation Status": "N/A"},
+    {"Transaction ID": "TX98765", "Date and Time": "2023-08-05 18:15:00", "Account Number": "E135792", "Transaction Type": "Purchase", "Transaction Amount": 2000, "Counterparty": "Online Retailer", "Location": "Tokyo, Japan", "Transaction Channel": "Credit Card", "Purpose or Description": "Electronics purchase", "Risk Score": 7, "Flag or Alert": True, "Review Status": "Pending", "Associated Accounts": "-", "Source of Funds": "Credit", "Transaction Patterns": "Unusual location and amount", "Notes or Comments": "-", "Investigation Status": "Ongoing"},
+    {"Transaction ID": "TX54321", "Date and Time": "2023-07-03 23:00:00", "Account Number": "F246813", "Transaction Type": "Transfer", "Transaction Amount": 1500, "Counterparty": "Account G357159", "Location": "Miami, USA", "Transaction Channel": "Online Banking", "Purpose or Description": "Inter-account transfer", "Risk Score": 4, "Flag or Alert": False, "Review Status": "Cleared", "Associated Accounts": "Account G357159", "Source of Funds": "Savings", "Transaction Patterns": "Regular inter-account transfer", "Notes or Comments": "-", "Investigation Status": "N/A"}
+]
+        return jsonify({
+        "Response": llm(f"使用繁體中文總結這份列表的異常交易行為, 並列出異常帳戶及交易異常行為:{str(kyc)}")
+    })
+    
+    # id, Name, result, _, reason, dt =  kyc[0]
+    return jsonify({
+        "Response": f"以下是 {dateoftrans} 的異常交易行為的總結，以及列出的異常帳戶和交易異常行為：\n\n總結：\n這份列表中包含了幾筆異常交易行為，涵蓋了不同類型的交易，包括提款、存款、轉帳和購物等。這些異常交易行為涉及金額、地點、交易渠道等多方面的不尋常特徵，有些已經觸發警示標誌，有些正在審查中，並且可能涉及潛在的風險。一些交易已經被解除警示，但其他一些交易仍在調查中。\n\n異常帳戶及交易異常行為：\n1. 帳戶 A123456\n   - 交易ID：TX12345\n   - 交易類型：提款\n   - 交易金額：10000\n   - 地點：巴黎，法國\n   - 交易渠道：ATM\n   - 交易特徵：大額現金提款\n   - 風險分數：8\n   - 警示標誌：是\n   - 審查狀態：待審查\n   - 交易模式：金額不尋常\n   - 註解：客戶報告的旅行計劃\n   - 調查狀態：進行中\n\n2. 帳戶 E135792\n   - 交易ID：TX98765\n   - 交易類型：購物\n   - 交易金額：2000\n   - 地點：東京，日本\n   - 交易渠道：信用卡\n   - 交易特徵：不尋常的地點和金額\n   - 風險分數：7\n   - 警示標誌：是\n   - 審查狀態：待審查\n   - 交易模式：金額和地點不尋常\n   - 註解：無\n   - 調查狀態：進行中\n\n以上帳戶的交易行為顯示出金額、地點或其他特徵的不尋常情況，可能涉及風險或潛在的異常交易。這些帳戶的交易正在審查中，以確定是否存在任何不當行為。"
+    })
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+   
+    app.run(host='0.0.0.0',port=5000)

@@ -1,0 +1,66 @@
+openapi: 3.0.0
+info:
+  title: Flask API
+  description: API documentation for the Flask application
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+    description: OCP development server
+paths:
+  /due_diligence:
+    post:
+      summary: Perform due diligence search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                job:
+                  type: string
+                company:
+                  type: string
+              required:
+                - name
+                - job
+                - company
+      responses:
+        '200':
+          description: Successful response
+  /get_account_status:
+    post:
+      summary: Get account status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+              required:
+                - name
+      responses:
+        '200':
+          description: Successful response
+  /get_abnormal_list:
+    post:
+      summary: Get abnormal transaction list
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+              required:
+                - date
+      responses:
+        '200':
+          description: Successful response
