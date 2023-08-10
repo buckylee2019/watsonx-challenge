@@ -91,7 +91,7 @@ def due_diligence_response():
     return result
 @app.route('/get_account_status', methods=['POST'])
 def account_status():
-    db = SQLDatabase.from_uri("mysql+pymysql://ceadmin:CE.demo0704@163.73.72.44/cedemo")
+    db = SQLDatabase.from_uri(os.environ.get("MYSQL_CONN","None"))
     data = request.get_json()
     # data = {"name":"孫道存"}
     name = data['name']
@@ -110,7 +110,7 @@ def account_status():
 
 @app.route('/get_abnormal_list', methods=['POST'])
 def abnormal_list():
-    db = SQLDatabase.from_uri("mysql+pymysql://ceadmin:CE.demo0704@163.73.72.44/cedemo")
+    db = SQLDatabase.from_uri(os.environ.get("MYSQL_CONN","None"))
     data = request.get_json()
     
     dateoftrans = data['date']
