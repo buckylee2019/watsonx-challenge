@@ -5,3 +5,4 @@ chroma_db/
 namelist.txt
 /venv
 app.py
+LLM/__pycache__/
