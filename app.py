@@ -96,8 +96,8 @@ def account_status():
     # data = {"name":"孫道存"}
     name = data['name']
     account = db.run(f"select * from account_status where customer_name = \"{name}\"")
-    print(eval(account))
-    if account == "[]":
+    # print(eval(account))
+    if account == "":
         # account = [(5, '孫道存', 'Rejected', 'Pending', '涉及金融犯罪相關新聞, 需進一步審查', '2023-08-10')]
         return jsonify({"error":"搜尋名稱不存在！"})
     id, Name, _, result, reason, dt =  eval(account)[0]
@@ -116,7 +116,7 @@ def abnormal_list():
     dateoftrans = data['date']
     kyc = db.run(f"select * from kyc_info")
     print(kyc)
-    if len(kyc) == "[]":
+    if kyc == "":
         kyc = [
     {"Transaction ID": "TX12345", "Date and Time": "2023-08-01 14:30:00", "Account Number": "A123456", "Transaction Type": "Withdrawal", "Transaction Amount": 10000, "Counterparty": "-", "Location": "Paris, France", "Transaction Channel": "ATM", "Purpose or Description": "Large cash withdrawal", "Risk Score": 8, "Flag or Alert": True, "Review Status": "Pending", "Associated Accounts": "-", "Source of Funds": "Savings", "Transaction Patterns": "Unusual amount", "Notes or Comments": "Customer reported travel plans", "Investigation Status": "Ongoing"},
     {"Transaction ID": "TX67890", "Date and Time": "2023-07-15 09:45:00", "Account Number": "B987654", "Transaction Type": "Deposit", "Transaction Amount": 50, "Counterparty": "Friend's Account", "Location": "New York, USA", "Transaction Channel": "Online Banking", "Purpose or Description": "Repaying borrowed money", "Risk Score": 5, "Flag or Alert": False, "Review Status": "Cleared", "Associated Accounts": "-", "Source of Funds": "Personal funds", "Transaction Patterns": "Small deposits", "Notes or Comments": "-", "Investigation Status": "N/A"},
