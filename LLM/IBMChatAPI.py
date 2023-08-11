@@ -11,11 +11,11 @@ from genai.model import Model
 from genai.schemas import GenerateParams
 from genai.credentials import Credentials
 import LLM.watsonx_example.due_diligence as due_diligence 
+from ibm_watson_machine_learning.foundation_models import Model
+from ibm_watson_machine_learning.metanames import GenTextParamsMetaNames as GenParams
+from ibm_watson_machine_learning.foundation_models.utils.enums import ModelTypes, DecodingMethods
 
-load_dotenv()
-api_key = os.getenv("GENAI_KEY", None) 
-api_url = os.getenv("GENAI_API", None)
-creds = Credentials(api_key, api_endpoint=api_url)
+# load_dotenv()
 
 class ChatBot():
     def __init__(self) -> None:
@@ -74,28 +74,47 @@ class IBMChat(LLM):
         """Get the identifying parameters."""
         return {"model": "IBM watsonx"}
 
-
-def watsonx_ref_model(name, title, content):
-    params = GenerateParams(decoding_method="sample", max_new_tokens=300, temperature=0.1)
-    LLM = Model("ibm/mpt-7b-instruct", params=params, credentials=creds)
-    applicant_prompt = f"Extract {name}'s below information from below content"
-    format_prompt = 'committed crime name, sentence, involved in news title, if the field is not mentioned fill it with N/A Make sure every information you display is found in the given news. Allowed format: {"news_title" : "Title of news", "name": "person name in the news", "committed_crime_name" : "Crime that the person is possibly committed in the news;sentence:Sentence that given by the judge in the news"} Response ONLY in list format and the value should be its original text, DO NOT translate'
-    news_prompt = f"""
-        Title: {title}
-        Content: {content}
-    """
-    applicant_content = applicant_prompt+format_prompt+news_prompt
-
-    json_data = f"""{due_diligence.template_1}
-        Transcript:{applicant_content}
-        Summary:
-        """
-
-    response = LLM.generate([json_data])
-    print(response[0].generated_text)
+class watsonx():
+    def __init__(self, api_key ,api_endpoint):
     
-    result = json.loads(response[0].generated_text)
-    return result
+        # To display example params enter
+        GenParams().get_example_values()
+
+        generate_params = {
+            GenParams.MAX_NEW_TOKENS: 300
+        }
+
+        self.model = Model(
+            model_id=ModelTypes.MPT_7B_INSTRUCT2,
+            params=generate_params,
+            credentials={
+                "apikey": api_key,
+                "url": api_endpoint
+            },
+            project_id="5dec0b1d-c146-4422-830d-4185d36e5223"
+            )
+    def watsonx_ref_model(self, name, title, content):
+        
+        
+        applicant_prompt = f"Extract {name}'s below information from below content"
+        format_prompt = 'committed crime name, sentence, involved in news title, if the field is not mentioned fill it with N/A Make sure every information you display is found in the given news. Allowed format: {"news_title" : "Title of news", "name": "person name in the news", "committed_crime_name" : "Crime that the person is possibly committed in the news;sentence:Sentence that given by the judge in the news"} Response ONLY in list format and the value should be its original text, DO NOT translate'
+        news_prompt = f"""
+            Title: {title}
+            Content: {content}
+        """
+        applicant_content = applicant_prompt+format_prompt+news_prompt
+
+        json_data = f"""{due_diligence.template_1}
+            Transcript:{applicant_content}
+            Summary:
+            """
+        
+        response = self.model.generate(json_data)['results'][0]['generated_text']
+        
+        # fixjson = f"Fix the following json to valid syntax and response JSON Format only: {response}"
+        # jsonout = self.model.generate(fixjson)['results'][0]['generated_text']
+        # result = jsonout['results'][0]['generated_text']
+        return json.loads(response)
 
 # llm = IBMChat() #for start new chat
 

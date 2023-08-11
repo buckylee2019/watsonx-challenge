@@ -8,6 +8,10 @@ from LLM import ChatGPTAPI_unsafe  # FREE GOOGLE BARD API
 from langchain.agents.agent_toolkits import SQLDatabaseToolkit
 from langchain.sql_database import SQLDatabase
 import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
+
 app = Flask(__name__)
 watsonx_token= os.environ.get("WATSONX_TOKEN","aaa") 
 llm = ChatGPTAPI_unsafe.ChatGPT(token=os.environ.get("CHATGPT_TOKEN"), conversation=os.environ.get("CONVERSATION_ID_1"))
@@ -87,7 +91,8 @@ def due_diligence_response():
     name = graph_response['name']
     title = graph_response['title']
     content = graph_response['content']
-    result = ibm_ref.watsonx_ref_model(name, title, content)
+    watson_llm = ibm_ref.watsonx(os.environ.get('GENAI_KEY'),os.environ.get('GENAI_API'))
+    result = watson_llm.watsonx_ref_model(name, title, content)
     return result
 @app.route('/get_account_status', methods=['POST'])
 def account_status():
@@ -113,7 +118,7 @@ def abnormal_list():
     db = SQLDatabase.from_uri(os.environ.get("MYSQL_CONN","None"))
     data = request.get_json()
     
-    dateoftrans = data['date']
+    dateoftrans = data['name']
     kyc = db.run(f"select * from kyc_info")
     print(kyc)
     if kyc == "":
@@ -132,6 +137,37 @@ def abnormal_list():
     return jsonify({
         "Response": f"以下是 {dateoftrans} 的異常交易行為的總結，以及列出的異常帳戶和交易異常行為：\n\n總結：\n這份列表中包含了幾筆異常交易行為，涵蓋了不同類型的交易，包括提款、存款、轉帳和購物等。這些異常交易行為涉及金額、地點、交易渠道等多方面的不尋常特徵，有些已經觸發警示標誌，有些正在審查中，並且可能涉及潛在的風險。一些交易已經被解除警示，但其他一些交易仍在調查中。\n\n異常帳戶及交易異常行為：\n1. 帳戶 A123456\n   - 交易ID：TX12345\n   - 交易類型：提款\n   - 交易金額：10000\n   - 地點：巴黎，法國\n   - 交易渠道：ATM\n   - 交易特徵：大額現金提款\n   - 風險分數：8\n   - 警示標誌：是\n   - 審查狀態：待審查\n   - 交易模式：金額不尋常\n   - 註解：客戶報告的旅行計劃\n   - 調查狀態：進行中\n\n2. 帳戶 E135792\n   - 交易ID：TX98765\n   - 交易類型：購物\n   - 交易金額：2000\n   - 地點：東京，日本\n   - 交易渠道：信用卡\n   - 交易特徵：不尋常的地點和金額\n   - 風險分數：7\n   - 警示標誌：是\n   - 審查狀態：待審查\n   - 交易模式：金額和地點不尋常\n   - 註解：無\n   - 調查狀態：進行中\n\n以上帳戶的交易行為顯示出金額、地點或其他特徵的不尋常情況，可能涉及風險或潛在的異常交易。這些帳戶的交易正在審查中，以確定是否存在任何不當行為。"
     })
+
+@app.route('/get_risk_list', methods=['GET'])
+def risk_list():
+    fakelist = """
+    風險名單 1：
+        姓名：李小明
+        國家：中國
+        原因：涉嫌進行非法的金融詐騙活動
+
+    風險名單 2：
+        姓名：Emily Johnson
+        國家：美國
+        原因：涉嫌參與跨國洗錢計劃
+
+    風險名單 3：
+        姓名：Rajesh Patel
+        國家：印度
+        原因：涉嫌違反國際制裁，與叙利亞有不當商業交易
+
+    風險名單 4：
+        姓名：Anna Petrov
+        國家：俄羅斯
+        原因：涉嫌參與非法的武器買賣交易
+
+    風險名單 5：
+        姓名：Mohammed Ali
+        國家：沙特阿拉伯
+        原因：涉嫌支持恐怖主義活動，資助極端組織"""
+    # id, Name, result, _, reason, dt =  kyc[0]
+    return jsonify({
+        "Response":fakelist})
 
 if __name__ == '__main__':
    
