@@ -1,3 +1,4 @@
+#coding=utf-8
 import os
 import json
 from flask import Flask, request, jsonify
@@ -87,12 +88,19 @@ def due_diligence_response():
     name = data['name']
     job = data['job']
     company = data['company']
-    graph_response = graphdb_search_response(name, job, company)
-    name = graph_response['name']
-    title = graph_response['title']
-    content = graph_response['content']
-    watson_llm = ibm_ref.watsonx(os.environ.get('GENAI_KEY'),os.environ.get('GENAI_API'))
-    result = watson_llm.watsonx_ref_model(name, title, content)
+    # 用假資料代替GraphDB搜尋
+    # graph_response = graphdb_search_response(name, job, company)
+    # name = graph_response['name']
+    # title = graph_response['title']
+    # content = graph_response['content']
+    # watson_llm = ibm_ref.watsonx(os.environ.get('GENAI_KEY'),os.environ.get('GENAI_API'))
+    # result = watson_llm.watsonx_ref_model(name, title, content)
+    result = jsonify({
+        "news_title": "掏空案創單起案件最高賠償",
+        "name": "王小明",
+        "committed_crime_name": "掏空",
+        "sentence": "賠償1000億多元"    
+    })
     return result
 @app.route('/get_account_status', methods=['POST'])
 def account_status():
