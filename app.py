@@ -118,7 +118,7 @@ def abnormal_list():
     db = SQLDatabase.from_uri(os.environ.get("MYSQL_CONN","None"))
     data = request.get_json()
     
-    dateoftrans = data['name']
+    dateoftrans = data['date']
     kyc = db.run(f"select * from kyc_info")
     print(kyc)
     if kyc == "":
